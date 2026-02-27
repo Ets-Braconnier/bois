@@ -491,9 +491,7 @@
       syncCategoryUI();
       render();
 
-      window.addEventListener("resize", () => {
-        sendHeightSoon();
-      });
+      window.addEventListener("orientationchange", sendHeightSoon);
     })();
   </script>
 
