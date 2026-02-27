@@ -398,11 +398,11 @@
           <figure>
             <figcaption>
               ${PRODUCT_PDFS[pathKey]
-          ? `<a href="${PRODUCT_PDFS[pathKey]}" target="_blank" rel="noopener" class="titleLink">
+            ? `<a href="${PRODUCT_PDFS[pathKey]}" target="_blank" rel="noopener" class="titleLink">
                     ${label} <span class="pdfTag">PDF</span>
                   </a>`
-          : label
-        }
+            : label
+          }
             </figcaption>
 
             <a class="thumb"
@@ -424,13 +424,13 @@
             <div class="price">
               <div class="price-label">${priceUnitLabel}</div>
               ${price !== undefined
-          ? `<div class="price-amount">
+            ? `<div class="price-amount">
                     <span class="int">${formatPrice(price).split(".")[0]}</span>
                     <span class="dec">${formatPrice(price).split(".")[1] || "00"}</span>
                     <span class="eur">€</span>
                   </div>`
-          : `<div class="price-amount muted">—</div>`
-        }
+            : `<div class="price-amount muted">—</div>`
+          }
             </div>
           </figure>
         `;
@@ -518,7 +518,7 @@
     }
 
     window.addEventListener("load", sendHeightSoon);
-    window.addEventListener("resize", sendHeightSoon);
+    window.addEventListener("orientationchange", sendHeightSoon);
   </script>
 
 </body>
