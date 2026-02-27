@@ -4,11 +4,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bois &amp; Panneaux</title>
+  <title>Bois</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+
+  <div class="wrap">
+    <!-- Desktop -->
+    <div id="catButtons" class="catButtons"></div>
+
+    <!-- Mobile -->
+    <select id="catSelect" class="catSelect"></select>
+  </div>
 
   <div id="app"></div>
 
@@ -16,40 +24,83 @@
 
   <script>
     // =========================
-    //  PRODUITS BOIS
+    //  CATEGORIES (BOIS + PÂTES)
     // =========================
-    const IMAGES = [
-      "osb3.png",
-      "agglomere.png",
-      "lauan.png",
-      "multi-filme.png",
-      "mdf.png",
-      "unalit-blanc.png",
-      "chevron.png",
-      "latte.png",
+    const IMAGES = {
+      "bois-panneaux": [
+        "osb3.png",
+        "agglomere.png",
+        "lauan.png",
+        "multi-filme.png",
+        "sous-toiture.png",
+        "mdf.png",
+        "unalit-blanc.png",
+        "chevron.png",
+        "latte.png",
+        "sls.png",
+        "poutrelle.png",
+        "volige.png"
+      ],
 
-      "sls.png",
-      "poutrelle.png",
-      "volige.png",
-      "toupret-extrem-wood.png",
-      "toupret-hard-wood.png",
-      "toupret-repar-wood.png",
-      "toupret-wood-finish.png"
+      // ✅ PÂTES À BOIS + produits non-bois (Toupret)
+      "pates": [
+        // ---- Pâtes à bois (nouveaux) ----
+        "pate-a-bois-50g-blanc.jpg",
+        "pate-a-bois-50g-chene-clair.jpg",
+        "pate-a-bois-50g-chene-moyen.jpg",
+        "pate-a-bois-50g-chene-fonce.jpg",
+        "pate-a-bois-50g-noyer.jpg",
+        "pate-a-bois-50g-naturel.jpg",
+
+        // ---- Toupret (non-bois) ----
+        "toupret-enduit-rebouchage-pate.png",
+        "toupret-extrem-wood.png",
+        "toupret-hard-wood.png",
+        "toupret-repar-wood.png",
+        "toupret-wood-finish.png"
+      ]
+    };
+
+    // UI catégories (ordre + labels)
+    const CATEGORY_UI = [
+      { id: "bois-panneaux", label: "Bois" },
+      { id: "pates", label: "Pâtes à bois" }
     ];
 
-    // Noms d'affichage
+    // Icônes des vignettes
+    const CAT_ICONS = {
+      "bois-panneaux": "galerie/chevron.png",
+      "pates": "galerie/pate-a-bois-50g-chene-moyen.jpg"
+    };
+
+    // =========================
+    //  NOMS D'AFFICHAGE
+    // =========================
     const DISPLAY_NAMES = {
-      "galerie/agglomere.png": "Panneau Aggloméré",
+      // --- Bois / panneaux ---
+      "galerie/agglomere.png": "Aggloméré",
       "galerie/chevron.png": "Chevron",
       "galerie/latte.png": "Latte",
-      "galerie/lauan.png": "Panneau Lauan",
-      "galerie/mdf.png": "Panneau MDF",
-      "galerie/multi-filme.png": "panneau Multi-film",
-      "galerie/osb3.png": "Panneau OSB 3",
+      "galerie/lauan.png": "Multiplex",
+      "galerie/mdf.png": "MDF",
+      "galerie/multi-filme.png": "Multi-film",
+      "galerie/sous-toiture.png": "Panneau de sous-toiture",
+      "galerie/osb3.png": "OSB 3",
       "galerie/poutrelle.png": "Poutrelle",
       "galerie/sls.png": "SLS",
       "galerie/unalit-blanc.png": "Unalit Blanc",
       "galerie/volige.png": "Volige",
+
+      // --- Pâtes à bois ---
+      "galerie/pate-a-bois-50g-blanc.jpg": "Blanc",
+      "galerie/pate-a-bois-50g-chene-clair.jpg": "Chêne clair",
+      "galerie/pate-a-bois-50g-chene-moyen.jpg": "Chêne moyen",
+      "galerie/pate-a-bois-50g-chene-fonce.jpg": "Chêne foncé",
+      "galerie/pate-a-bois-50g-noyer.jpg": "Noyer",
+      "galerie/pate-a-bois-50g-naturel.jpg": "Naturel",
+
+      // --- Toupret (non-bois) ---
+      "galerie/toupret-enduit-rebouchage-pate.png": "Enduit rebouchage (pâte)",
       "galerie/toupret-extrem-wood.png": "Extrême Wood",
       "galerie/toupret-hard-wood.png": "Hard Wood",
       "galerie/toupret-repar-wood.png": "Repair Wood",
@@ -61,12 +112,18 @@
       // "galerie/osb3.png": "pdf/osb3.pdf",
     };
 
+    /** Tailles fallback (si aucune taille n’est trouvée dans l’Excel) */
+    const CAT_SIZES = {
+      "bois-panneaux": [""],
+      "pates": [""]
+    };
+
     function normalizeSize(s) {
       return String(s || "").trim();
     }
 
-    function getSizeOptions() {
-      return [""]; // fallback si Excel ne donne pas de tailles
+    function getSizeOptions(cat) {
+      return CAT_SIZES[cat] || [""];
     }
 
     /** ============
@@ -80,6 +137,57 @@
 
     // UI
     const app = document.getElementById("app");
+    const catButtons = document.getElementById("catButtons");
+    const catSelect = document.getElementById("catSelect");
+
+    const allowedCats = new Set(Object.keys(IMAGES));
+    const categories = CATEGORY_UI.filter(c => allowedCats.has(c.id));
+    let activeCat = categories[0]?.id || "__none__";
+
+    function buildCatButtons() {
+      catButtons.innerHTML = categories.map(c => {
+        const icon = CAT_ICONS[c.id];
+        return `
+          <button class="catBtn ${c.id === activeCat ? 'active' : ''}"
+                  data-cat="${c.id}" type="button">
+            ${icon ? `
+              <div class="catIcon">
+                <img src="${icon}" alt="">
+              </div>
+            ` : ``}
+            <span>${c.label}</span>
+          </button>
+        `;
+      }).join("");
+
+      catButtons.querySelectorAll("button[data-cat]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeCat = btn.dataset.cat;
+          syncCategoryUI();
+          render();
+        });
+      });
+    }
+
+    function buildCatSelect() {
+      catSelect.innerHTML = categories
+        .map(c => `<option value="${c.id}">${c.label}</option>`)
+        .join("");
+
+      catSelect.addEventListener("change", () => {
+        activeCat = catSelect.value;
+        syncCategoryUI();
+        render();
+      });
+    }
+
+    function syncCategoryUI() {
+      if (catSelect) catSelect.value = activeCat;
+      document.querySelectorAll("#catButtons .catBtn").forEach(b => {
+        b.classList.toggle("active", b.dataset.cat === activeCat);
+      });
+      sendHeightSoon();
+    }
 
     function getKey(path, taille) {
       return `${path}|${normalizeSize(taille)}`;
@@ -244,12 +352,25 @@
     }
 
     function render() {
-      // Mets "Tvac / m²" si tes prix sont au m², ou "Tvac / m" si au mètre, etc.
+      const cat = activeCat;
       const priceUnitLabel = "Tvac";
+
+      if (!cat || !IMAGES[cat]) {
+        app.innerHTML = `<p class="muted">Aucune catégorie à afficher.</p>`;
+        sendHeightSoon();
+        return;
+      }
+
+      const files = IMAGES[cat] || [];
+      if (!files.length) {
+        app.innerHTML = `<p class="muted">Aucune image à afficher.</p>`;
+        sendHeightSoon();
+        return;
+      }
 
       let html = `<div class="grid">`;
 
-      for (const f of IMAGES) {
+      for (const f of files) {
         const pathKey = `galerie/${f}`;
         const src = `galerie/${encodeURIComponent(f)}`;
 
@@ -259,7 +380,7 @@
 
         let options = (SIZES_BY_PATH[pathKey] && SIZES_BY_PATH[pathKey].length)
           ? SIZES_BY_PATH[pathKey]
-          : getSizeOptions();
+          : getSizeOptions(cat);
 
         let currentSize = pickInitialSize(pathKey, options);
         if (currentSize && !options.includes(currentSize)) currentSize = options[0] || "";
@@ -277,11 +398,11 @@
           <figure>
             <figcaption>
               ${PRODUCT_PDFS[pathKey]
-            ? `<a href="${PRODUCT_PDFS[pathKey]}" target="_blank" rel="noopener" class="titleLink">
+          ? `<a href="${PRODUCT_PDFS[pathKey]}" target="_blank" rel="noopener" class="titleLink">
                     ${label} <span class="pdfTag">PDF</span>
                   </a>`
-            : label
-          }
+          : label
+        }
             </figcaption>
 
             <a class="thumb"
@@ -303,13 +424,13 @@
             <div class="price">
               <div class="price-label">${priceUnitLabel}</div>
               ${price !== undefined
-            ? `<div class="price-amount">
+          ? `<div class="price-amount">
                     <span class="int">${formatPrice(price).split(".")[0]}</span>
                     <span class="dec">${formatPrice(price).split(".")[1] || "00"}</span>
                     <span class="eur">€</span>
                   </div>`
-            : `<div class="price-amount muted">—</div>`
-          }
+          : `<div class="price-amount muted">—</div>`
+        }
             </div>
           </figure>
         `;
@@ -365,6 +486,9 @@
 
     (async function init() {
       await loadPricesFromFolder();
+      buildCatButtons();
+      buildCatSelect();
+      syncCategoryUI();
       render();
 
       window.addEventListener("resize", () => {
