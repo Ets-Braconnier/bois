@@ -186,7 +186,6 @@
       document.querySelectorAll("#catButtons .catBtn").forEach(b => {
         b.classList.toggle("active", b.dataset.cat === activeCat);
       });
-      sendHeightSoon();
     }
 
     function getKey(path, taille) {
@@ -359,14 +358,12 @@
 
       if (!cat || !IMAGES[cat]) {
         app.innerHTML = `<p class="muted">Aucune catégorie à afficher.</p>`;
-        sendHeightSoon();
         return;
       }
 
       const files = IMAGES[cat] || [];
       if (!files.length) {
         app.innerHTML = `<p class="muted">Aucune image à afficher.</p>`;
-        sendHeightSoon();
         return;
       }
 
@@ -479,11 +476,8 @@
           const st = document.getElementById(stockId);
           if (st) st.textContent = stockLabelFor(k);
 
-          sendHeightSoon();
         });
       });
-
-      sendHeightSoon();
     }
 
     (async function init() {
@@ -499,26 +493,19 @@
 
   <script>
     function sendHeight() {
-      const h = Math.max(
-        document.body ? document.body.scrollHeight : 0,
-        document.documentElement ? document.documentElement.scrollHeight : 0
-      );
+      const rect = document.documentElement.getBoundingClientRect();
+      const h = Math.ceil(rect.height);
 
       if (window.parent !== window) {
         window.parent.postMessage({ type: "resize", height: h }, "*");
       }
     }
 
-    function sendHeightSoon() {
-      requestAnimationFrame(() => {
-        sendHeight();
-        setTimeout(sendHeight, 150);
-        setTimeout(sendHeight, 600);
-      });
-    }
+    const ro = new ResizeObserver(() => sendHeight());
+    ro.observe(document.documentElement);
 
-    window.addEventListener("load", sendHeightSoon);
-    window.addEventListener("orientationchange", sendHeightSoon);
+    window.addEventListener("load", sendHeight);
+    window.addEventListener("orientationchange", sendHeight);
   </script>
 
 </body>
