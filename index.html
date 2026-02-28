@@ -493,19 +493,29 @@
 
   <script>
     function sendHeight() {
-      const rect = document.documentElement.getBoundingClientRect();
-      const h = Math.ceil(rect.height);
+      const h = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
 
       if (window.parent !== window) {
         window.parent.postMessage({ type: "resize", height: h }, "*");
       }
     }
 
-    const ro = new ResizeObserver(() => sendHeight());
-    ro.observe(document.documentElement);
+    function sendHeightStable() {
+      requestAnimationFrame(() => {
+        sendHeight();
+        setTimeout(sendHeight, 200);
+        setTimeout(sendHeight, 600);
+      });
+    }
 
-    window.addEventListener("load", sendHeight);
-    window.addEventListener("orientationchange", sendHeight);
+    const ro = new ResizeObserver(() => sendHeightStable());
+    ro.observe(document.body);
+
+    window.addEventListener("load", sendHeightStable);
+    window.addEventListener("orientationchange", sendHeightStable);
   </script>
 
 </body>
