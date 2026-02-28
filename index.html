@@ -107,6 +107,17 @@
       "galerie/toupret-wood-finish.png": "Wood Finish"
     };
 
+    // Produits vendus au m² uniquement
+    const PRICE_PER_M2 = new Set([
+      "galerie/osb3.png",
+      "galerie/agglomere.png",
+      "galerie/lauan.png",
+      "galerie/multi-filme.png",
+      "galerie/sous-toiture.png",
+      "galerie/mdf.png",
+      "galerie/unalit-blanc.png"
+    ]);
+
     // PDFs par produit (si tu veux en ajouter plus tard)
     const PRODUCT_PDFS = {
       // "galerie/osb3.png": "pdf/osb3.pdf",
@@ -352,9 +363,11 @@
 
     function render() {
       const cat = activeCat;
-      const priceUnitLabel = cat === "bois-panneaux"
-        ? "Tvac / m²"
-        : "Tvac";
+      function getPriceUnit(pathKey) {
+        return PRICE_PER_M2.has(pathKey)
+          ? "Tvac / m²"
+          : "Tvac";
+      }
 
       if (!cat || !IMAGES[cat]) {
         app.innerHTML = `<p class="muted">Aucune catégorie à afficher.</p>`;
@@ -372,6 +385,7 @@
       for (const f of files) {
         const pathKey = `galerie/${f}`;
         const src = `galerie/${encodeURIComponent(f)}`;
+        const priceUnitLabel = getPriceUnit(pathKey);
 
         const label = (DISPLAY_NAMES[pathKey] ?? f)
           .replace(/\.(png|jpg|jpeg|webp)$/i, "")
@@ -441,6 +455,7 @@
       document.querySelectorAll('select[data-path]').forEach(sel => {
         sel.addEventListener("change", () => {
           const pathKey = sel.dataset.path;
+          const priceUnitLabel = getPriceUnit(pathKey);
           const taille = normalizeSize(sel.value);
           setStoredSize(pathKey, taille);
 
@@ -487,7 +502,7 @@
       syncCategoryUI();
       render();
 
-      window.addEventListener("orientationchange", sendHeightSoon);
+      window.addEventListener("orientationchange", sendHeightStable);
     })();
   </script>
 
