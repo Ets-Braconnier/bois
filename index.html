@@ -353,7 +353,9 @@
 
     function render() {
       const cat = activeCat;
-      const priceUnitLabel = "Tvac";
+      const priceUnitLabel = cat === "bois-panneaux"
+        ? "Tvac / m²"
+        : "Tvac";
 
       if (!cat || !IMAGES[cat]) {
         app.innerHTML = `<p class="muted">Aucune catégorie à afficher.</p>`;
